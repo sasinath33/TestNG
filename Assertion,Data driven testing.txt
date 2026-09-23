@@ -1,0 +1,1051 @@
+Chapter 5: Assertions in TestNG
+=================================
+
+5.1 What are Assertions?
+
+Assertions are checkpoints in your test cases. They verify that the application behaves as expected.
+
+If an assertion passes, the test continues.
+
+If an assertion fails, the test is marked as failed.
+
+5.2 Types of Assertions
+
+TestNG provides two main types:
+
+Type Behavior Example
+
+Hard Assertion Stops execution immediately when it fails Assert.assertEquals(actual, expected)
+
+Soft Assertion Records failure but continues execution SoftAssert soft = new SoftAssert(); soft.assertEquals(actual, expected); soft.assertAll();
+
+5.3 Hard Assertion Example
+
+java
+
+import org.testng.Assert;
+
+import org.testng.annotations.Test;
+
+public class HardAssertionDemo {
+
+@Test
+
+public void testLogin() {
+
+String actualTitle = "Dashboard";
+
+String expectedTitle = "Dashboard";
+
+Assert.assertEquals(actualTitle, expectedTitle, "Title mismatch!");
+
+System.out.println("This line will execute only if assertion passes.");
+
+}
+
+@Test
+
+public void testFailure() {
+
+int actualValue = 5;
+
+int expectedValue = 10;
+
+Assert.assertEquals(actualValue, expectedValue, "Values are not equal!");
+
+System.out.println("This line will NOT execute because assertion fails.");
+
+}
+
+}
+
+Output
+
+Code
+
+PASSED: testLogin
+
+FAILED: testFailure
+
+5.4 Soft Assertion Example
+
+java
+
+import org.testng.annotations.Test;
+
+import org.testng.asserts.SoftAssert;
+
+public class SoftAssertionDemo {
+
+@Test
+
+public void testSoftAssertions() {
+
+SoftAssert soft = new SoftAssert();
+
+System.out.println("Checking first condition...");
+
+soft.assertEquals(5, 10, "First check failed!");
+
+System.out.println("Checking second condition...");
+
+soft.assertTrue("Hello".contains("H"), "Second check failed!");
+
+System.out.println("Checking third condition...");
+
+soft.assertFalse(false, "Third check failed!");
+
+// Collect all failures at the end
+
+soft.assertAll();
+
+}
+
+}
+
+Output
+
+Code
+
+Checking first condition...
+
+Checking second condition...
+
+Checking third condition...
+
+FAILED: testSoftAssertions
+
+java.lang.AssertionError: The following asserts failed:
+
+First check failed! expected [10] but found [5]
+
+5.5 Notes
+
+Use hard assertions when failure should stop the test immediately (e.g., login must succeed before proceeding).
+
+Use soft assertions when you want to validate multiple conditions in a single test run.
+
+Always call soft.assertAll() at the end, otherwise failures won’t be reported.
+
+5.6 Exercises
+
+Hard Assertion Practice: Write a test that checks whether the page title equals “Home”. Make it fail intentionally and observe the report.
+
+Soft Assertion Practice: Create a test with three validations (string match, number comparison, boolean check). Use soft assertions to continue execution even if one fails.
+
+Challenge: Combine hard and soft assertions in a single test class. Use hard assertion for login validation and soft assertions for dashboard checks.
+
+=======================================================================================
+
+
+
+📖 Chapter 6: Data-Driven Testing
+
+6.1 Why Data-Driven Testing?
+
+Instead of writing separate test methods for each input, TestNG allows us to:
+
+Pass parameters from XML
+
+Use @DataProvider for multiple datasets
+
+Integrate external sources like Excel or property files
+
+This makes tests reusable, scalable, and efficient.
+
+6.2 Parameters from XML
+
+You can define parameters in testng.xml and access them in your test.
+
+Example
+
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+
+<suite name="ParameterSuite">
+
+<test name="LoginTest">
+
+<parameter name="username" value="Rajii"/>
+
+<parameter name="password" value="12345"/>
+
+<classes>
+
+<class name="com.example.ParameterDemo"/>
+
+</classes>
+
+</test>
+
+</suite>
+
+import org.testng.annotations.Parameters;
+
+import org.testng.annotations.Test;
+
+public class ParameterDemo {
+
+@Test
+
+@Parameters({"username", "password"})
+
+public void loginTest(String user, String pass) {
+
+System.out.println("Username: " + user);
+
+System.out.println("Password: " + pass);
+
+}
+
+}
+
+6.3 Using @DataProvider
+
+@DataProvider allows you to supply multiple sets of data to a single test method.
+
+Example
+
+import org.testng.annotations.DataProvider;
+
+import org.testng.annotations.Test;
+
+public class DataProviderDemo {
+
+@DataProvider(name = "loginData")
+
+public Object[][] getData() {
+
+return new Object[][] {
+
+{"Rajii", "pass123"},
+
+{"Arun", "test456"},
+
+{"Meena", "secure789"}
+
+};
+
+}
+
+@Test(dataProvider = "loginData")
+
+public void loginTest(String username, String password) {
+
+System.out.println("Testing login with: " + username + " / " + password);
+
+}
+
+}
+
+Output
+
+Testing login with: Rajii / pass123
+
+Testing login with: Arun / test456
+
+Testing login with: Meena / secure789
+
+6.4 Notes
+
+Use Parameters for simple values from XML.
+
+Use DataProvider for multiple datasets.
+
+DataProvider methods must return Object[][].
+
+You can combine DataProvider with external sources (Excel, DB, property files).
+
+6.5 Exercises
+
+Parameter Practice: Create a test that accepts two parameters (browser, URL) from XML and prints them.
+
+DataProvider Practice: Write a test that checks login with three different usernames and passwords using @DataProvider.
+
+Challenge: Combine XML parameters and DataProvider. Use XML for browser type and DataProvider for login credentials.
+
+
+
+===========================================================================
+
+
+
+📖 Chapter 7: External Data Sources
+
+7.1 Why External Data?
+
+- Real-world automation frameworks rarely hardcode test data.
+
+- Instead, they store data in Excel files or property files for easy updates.
+
+- This makes frameworks scalable, reusable, and flexible.
+
+---
+
+7.2 Using Property Files
+
+Property files store configuration values like URLs, usernames, and passwords.
+
+Example: config.properties
+
+url=https://www.example.com
+
+username=Rajii
+
+password=12345
+
+Code to Read Property File
+
+import java.io.FileInputStream;
+
+import java.io.IOException;
+
+import java.util.Properties;
+
+import org.testng.annotations.Test;
+
+public class PropertyFileDemo {
+
+@Test
+
+public void readPropertyFile() throws IOException {
+
+Properties prop = new Properties();
+
+FileInputStream fis = new FileInputStream("config.properties");
+
+prop.load(fis);
+
+String url = prop.getProperty("url");
+
+String user = prop.getProperty("username");
+
+String pass = prop.getProperty("password");
+
+System.out.println("URL: " + url);
+
+System.out.println("Username: " + user);
+
+System.out.println("Password: " + pass);
+
+}
+
+}
+
+---
+
+7.3 Using Excel Files
+
+Excel is widely used for storing test data. We use Apache POI library to read Excel files.
+
+Maven Dependency
+
+xml
+
+<dependency>
+
+<groupId>org.apache.poi</groupId>
+
+<artifactId>poi</artifactId>
+
+<version>5.2.5</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.poi</groupId>
+
+<artifactId>poi-ooxml</artifactId>
+
+<version>5.2.5</version>
+
+</dependency>
+
+Example: Excel File TestData.xlsx
+
+| Username | Password |
+
+|----------|----------|
+
+| Rajii | pass123 |
+
+| Arun | test456 |
+
+| Meena | secure789 |
+
+Code to Read Excel
+
+import org.apache.poi.ss.usermodel.;
+
+import java.io.FileInputStream;
+
+import java.io.IOException;
+
+import org.testng.annotations.Test;
+
+public class ExcelDataDemo {
+
+@Test
+
+public void readExcelData() throws IOException {
+
+FileInputStream fis = new FileInputStream("TestData.xlsx");
+
+Workbook wb = WorkbookFactory.create(fis);
+
+Sheet sheet = wb.getSheet("Sheet1");
+
+int rows = sheet.getLastRowNum();
+
+for(int i = 1; i <= rows; i++) {
+
+Row row = sheet.getRow(i);
+
+String username = row.getCell(0).getStringCellValue();
+
+String password = row.getCell(1).getStringCellValue();
+
+System.out.println("Username: " + username + " | Password: " + password);
+
+}
+
+wb.close();
+
+}
+
+}
+
+---
+
+7.4 Integrating Excel with DataProvider
+
+You can combine Excel reading with @DataProvider to supply multiple datasets dynamically.
+
+import org.testng.annotations.DataProvider;
+
+import org.testng.annotations.Test;
+
+import org.apache.poi.ss.usermodel.;
+
+import java.io.FileInputStream;
+
+import java.io.IOException;
+
+public class ExcelDataProviderDemo {
+
+@DataProvider(name = "excelData")
+
+public Object[][] getExcelData() throws IOException {
+
+FileInputStream fis = new FileInputStream("TestData.xlsx");
+
+Workbook wb = WorkbookFactory.create(fis);
+
+Sheet sheet = wb.getSheet("Sheet1");
+
+int rows = sheet.getLastRowNum();
+
+Object[][] data = new Object[rows][2];
+
+for(int i = 1; i <= rows; i++) {
+
+Row row = sheet.getRow(i);
+
+data[i-1][0] = row.getCell(0).getStringCellValue();
+
+data[i-1][1] = row.getCell(1).getStringCellValue();
+
+}
+
+wb.close();
+
+return data;
+
+}
+
+@Test(dataProvider = "excelData")
+
+public void loginTest(String username, String password) {
+
+System.out.println("Testing login with: " + username + " / " + password);
+
+}
+
+}
+
+---
+
+7.5 Notes
+
+- Property files → Best for configuration (URLs, credentials).
+
+- Excel files → Best for large datasets.
+
+- Always close file streams to avoid memory leaks.
+
+- Combine with @DataProvider for dynamic test execution.
+
+---
+
+7.6 Exercises
+
+1. Property File Practice: Create a property file with URL, username, and password. Read and print them in a test.
+
+2. Excel Practice: Create an Excel sheet with three sets of login credentials. Read and print them using Apache POI.
+
+3. Challenge: Integrate Excel data with @DataProvider and run login tests for all credentials automatically.
+
+---
+
+Code:
+
+---------------
+
+package demo_11AM_Batch;
+
+import java.io.File;
+
+import java.io.FileInputStream;
+
+import java.io.IOException;
+
+import java.time.Duration;
+
+import org.apache.poi.EncryptedDocumentException;
+
+import org.apache.poi.ss.usermodel.DataFormatter;
+
+import org.apache.poi.ss.usermodel.Sheet;
+
+import org.apache.poi.ss.usermodel.Workbook;
+
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+
+import org.openqa.selenium.By;
+
+import org.openqa.selenium.WebDriver;
+
+import org.openqa.selenium.chrome.ChromeDriver;
+
+import org.testng.annotations.BeforeClass;
+
+import org.testng.annotations.BeforeMethod;
+
+import org.testng.annotations.DataProvider;
+
+import org.testng.annotations.Test;
+
+public class ExcelReader {
+
+
+
+WebDriver driver;
+
+@BeforeClass
+
+public void driverInitial() {
+
+driver = new ChromeDriver();
+
+driver.manage().window().maximize();
+
+driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
+}
+
+@BeforeMethod
+
+public void openWebsite() {
+
+driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
+
+}
+
+@Test(dataProvider = "getData")
+
+public void login(String s, String p) {
+
+driver.findElement(By.name("username")).sendKeys(s);
+
+driver.findElement(By.name("password")).sendKeys(p);
+
+driver.findElement(By.tagName("button")).click();
+
+
+System.out.println(s+" "+p);
+
+}
+
+
+@DataProvider
+
+public Object[][] getData() throws EncryptedDocumentException, IOException {
+
+File f=new File("C:\\Users\\LAPTOP\\Desktop\\OraniumTech\\Selenium_Batch\\src\\test\\resources\\Book1.xlsx");
+
+FileInputStream fis=new FileInputStream(f);
+
+Workbook workbook = WorkbookFactory.create(fis);
+
+Sheet sheet = workbook.getSheet("Sheet1");
+
+
+int row= sheet.getPhysicalNumberOfRows();
+
+System.out.println(row);
+
+
+int col = sheet.getRow(0).getPhysicalNumberOfCells();
+
+System.out.println(col);
+
+
+Object[][] arr=new Object[row-1][col];
+
+
+DataFormatter df=new DataFormatter();
+
+
+for(int i=1;i<row;i++) {
+
+for(int j=0;j<col;j++) {
+
+arr[i-1][j] = df.formatCellValue(sheet.getRow(i).getCell(j));
+
+System.out.println(arr[i-1][j]);
+
+}
+
+}
+
+
+return arr;
+
+
+}
+
+
+}
+
+===================================
+
+Codes
+Fullscreen
+orangeHrm.xml
+
+----------------------
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<suite name="Suite">
+
+<test thread-count="5" name="Test">
+
+<parameter name="username" value="Techpanda"></parameter>
+
+<parameter name="password" value="123456"></parameter>
+
+<classes>
+
+<class name="demo.OrangeHrm" />
+
+</classes>
+
+</test>
+
+
+
+
+
+<test thread-count="5" name="Test1">
+
+<parameter name="username" value="Admin"></parameter>
+
+<parameter name="password" value="admin123"></parameter>
+
+<classes>
+
+<class name="demo.OrangeHrm" />
+
+</classes>
+
+</test>
+
+
+
+<test thread-count="5" name="Test2">
+
+<parameter name="username" value="chennai"></parameter>
+
+<parameter name="password" value="45678"></parameter>
+
+<classes>
+
+<class name="demo.OrangeHrm" />
+
+</classes>
+
+</test>
+
+
+
+<!-- Test -->
+
+</suite> <!--
+
+Suite -->
+
+=========================================================================
+
+Assertion
+
+--------------
+
+package demo;
+
+import org.openqa.selenium.By;
+
+import org.openqa.selenium.WebDriver;
+
+import org.openqa.selenium.WebElement;
+
+import org.openqa.selenium.chrome.ChromeDriver;
+
+import org.testng.Assert;
+
+import org.testng.annotations.AfterMethod;
+
+import org.testng.annotations.BeforeMethod;
+
+import org.testng.annotations.Test;
+
+import org.testng.asserts.SoftAssert;
+
+public class AssertionDemo {
+
+WebDriver driver;
+
+@BeforeMethod
+
+public void openWebsite() {
+
+driver = new ChromeDriver();
+
+driver.get("https://www.google.com");
+
+}
+
+@Test
+
+public void checkTitle() {
+
+Assert.assertEquals("google", driver.getTitle(), "The title is mismatch");
+
+// SoftAssert s=new SoftAssert();
+
+// s.assertEquals("google", driver.getTitle(),"The title is mismatch");
+
+// s.assertAll(); // change to hardAssert
+
+System.out.println("Check Title");
+
+}
+
+@Test
+
+public void checkUrl() {
+
+Assert.assertEquals("https://www.google.com/", driver.getCurrentUrl());
+
+System.out.println("Checking url");
+
+}
+
+@Test
+
+public void isDisplay() {
+
+// Assert.assertEquals("google", driver.getTitle(), "The title is mismatch");
+
+SoftAssert s = new SoftAssert();
+
+WebElement element = driver.findElement(By.name("q23"));
+
+s.assertTrue(element.isDisplayed(), "Error this element is missing");
+
+System.out.println("isDisplayed");
+
+}
+
+@AfterMethod
+
+public void closedriver() {
+
+driver.quit();
+
+}
+
+}
+
+=================================================
+
+
+
+package demo;
+
+
+
+import java.time.Duration;
+
+
+
+import org.openqa.selenium.By;
+
+import org.openqa.selenium.WebDriver;
+
+import org.openqa.selenium.chrome.ChromeDriver;
+
+import org.testng.annotations.AfterMethod;
+
+import org.testng.annotations.BeforeMethod;
+
+import org.testng.annotations.DataProvider;
+
+import org.testng.annotations.Parameters;
+
+import org.testng.annotations.Test;
+
+
+
+public class OrangeHrm {
+
+WebDriver driver;
+
+
+
+@BeforeMethod
+
+public void openWebsite() {
+
+driver = new ChromeDriver();
+
+driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
+
+driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
+}
+
+
+
+@Parameters({ "username", "password" }) // same as XML name
+
+@Test
+
+public void login(String username, String password) {
+
+driver.findElement(By.name("username")).sendKeys(username);
+
+driver.findElement(By.name("password")).sendKeys(password);
+
+driver.findElement(By.tagName("button")).click();
+
+}
+
+
+
+@Test(dataProvider = "getData")
+
+public void login2(String username, String password) {
+
+System.out.println(username + " -> " + password);
+
+driver.findElement(By.name("username")).sendKeys(username);
+
+driver.findElement(By.name("password")).sendKeys(password);
+
+driver.findElement(By.tagName("button")).click();
+
+}
+
+
+
+@AfterMethod
+
+public void closeDriver() {
+
+driver.quit();
+
+}
+
+
+
+@DataProvider()
+
+public String[][] getData() {
+
+String[][] arr = new String[][] { { "techpanda", "123456" }, { "Admin", "admin123" }, { "Chennai", "123456" } };
+
+
+
+return arr;
+
+}
+
+
+
+}
+
+==========================================
+
+Excelreader.java
+
+
+
+package demo;
+
+
+
+import java.io.File;
+
+import java.io.FileInputStream;
+
+import java.io.IOException;
+
+import java.time.Duration;
+
+import java.util.Arrays;
+
+
+
+import org.apache.poi.EncryptedDocumentException;
+
+import org.apache.poi.ss.usermodel.DataFormatter;
+
+import org.apache.poi.ss.usermodel.Sheet;
+
+import org.apache.poi.ss.usermodel.Workbook;
+
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+
+import org.openqa.selenium.By;
+
+import org.openqa.selenium.WebDriver;
+
+import org.openqa.selenium.chrome.ChromeDriver;
+
+import org.testng.annotations.AfterMethod;
+
+import org.testng.annotations.BeforeMethod;
+
+import org.testng.annotations.DataProvider;
+
+import org.testng.annotations.Test;
+
+
+
+public class ExcelReader {
+
+
+
+WebDriver driver;
+
+
+
+@BeforeMethod
+
+public void openWebsite() {
+
+driver = new ChromeDriver();
+
+driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
+
+driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
+}
+
+
+
+@AfterMethod
+
+public void closeDriver() {
+
+driver.quit();
+
+}
+
+
+
+@Test(dataProvider = "getData")
+
+public void login2(String username, String password) {
+
+System.out.println(username + " -> " + password);
+
+driver.findElement(By.name("username")).sendKeys(username);
+
+driver.findElement(By.name("password")).sendKeys(password);
+
+driver.findElement(By.tagName("button")).click();
+
+}
+
+
+
+// File --> FileInputStream --> WorkBook --> Sheet --> Row
+
+
+
+@DataProvider
+
+public Object[][] getData() throws EncryptedDocumentException, IOException {
+
+String path = "C:\\Users\\LAPTOP\\OneDrive\\Desktop\\Java\\Java_Selenium_TestNG_2PM\\src\\test\\resources\\files\\orangehrm.xlsx";
+
+File f = new File(path);
+
+FileInputStream fis = new FileInputStream(f);
+
+Workbook workbook = WorkbookFactory.create(fis);
+
+Sheet sheet = workbook.getSheet("Sheet1");
+
+int row = sheet.getPhysicalNumberOfRows();
+
+int col = sheet.getRow(0).getPhysicalNumberOfCells();
+
+
+
+Object[][] arr = new Object[row-1][col]; // 3 2
+
+DataFormatter d = new DataFormatter();
+
+for (int i = 1; i < row; i++) {
+
+for (int j = 0; j < col; j++) {
+
+arr[i-1][j] = d.formatCellValue(sheet.getRow(i).getCell(j));
+
+}
+
+}
+
+
+
+System.out.println(row + " " + col);
+
+
+
+System.out.println(Arrays.deepToString(arr));
+
+return arr;
+
+
+
+}
+
+
+
+}
+
