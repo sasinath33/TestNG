@@ -1,0 +1,378 @@
+📖 Chapter 7: External Data Sources
+======================================
+
+7.1 Why External Data?
+
+- Real-world automation frameworks rarely hardcode test data.
+
+- Instead, they store data in Excel files or property files for easy updates.
+
+- This makes frameworks scalable, reusable, and flexible.
+
+---
+
+7.2 Using Property Files
+
+Property files store configuration values like URLs, usernames, and passwords.
+
+Example: config.properties
+
+url=https://www.example.com
+
+username=Rajii
+
+password=12345
+
+Code to Read Property File
+
+import java.io.FileInputStream;
+
+import java.io.IOException;
+
+import java.util.Properties;
+
+import org.testng.annotations.Test;
+
+public class PropertyFileDemo {
+
+@Test
+
+public void readPropertyFile() throws IOException {
+
+Properties prop = new Properties();
+
+FileInputStream fis = new FileInputStream("config.properties");
+
+prop.load(fis);
+
+String url = prop.getProperty("url");
+
+String user = prop.getProperty("username");
+
+String pass = prop.getProperty("password");
+
+System.out.println("URL: " + url);
+
+System.out.println("Username: " + user);
+
+System.out.println("Password: " + pass);
+
+}
+
+}
+
+==============================================
+
+📖 Chapter 4: Cross-Browser & Parallel Execution
+
+4.1 Why Cross-Browser Testing?
+
+Applications behave differently across browsers (Chrome, Firefox, Edge, Safari). Cross-browser testing ensures:
+
+- Consistency of UI and functionality
+
+- Early detection of browser-specific issues
+
+- Better user experience across platforms
+
+---
+
+4.2 Setting Up Cross-Browser Execution
+
+We use parameters in testng.xml to define which browser to run, and Selenium WebDriver to launch them.
+
+Example: Browser Parameterization
+
+import org.testng.annotations.;
+
+import org.openqa.selenium.WebDriver;
+
+import org.openqa.selenium.chrome.ChromeDriver;
+
+import org.openqa.selenium.firefox.FirefoxDriver;
+
+public class CrossBrowserDemo {
+
+WebDriver driver;
+
+@Parameters("browser")
+
+@BeforeClass
+
+public void setup(String browser) {
+
+if(browser.equalsIgnoreCase("chrome")) {
+
+driver = new ChromeDriver();
+
+} else if(browser.equalsIgnoreCase("firefox")) {
+
+driver = new FirefoxDriver();
+
+}
+
+driver.get("https://www.example.com");
+
+}
+
+@Test
+
+public void testTitle() {
+
+System.out.println("Page Title: " + driver.getTitle());
+
+}
+
+@AfterClass
+
+public void tearDown() {
+
+driver.quit();
+
+}
+
+}
+
+Sample testng.xml
+
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+
+<suite name="CrossBrowserSuite">
+
+<test name="ChromeTest">
+
+<parameter name="browser" value="chrome"/>
+
+<classes>
+
+<class name="com.example.CrossBrowserDemo"/>
+
+</classes>
+
+</test>
+
+<test name="FirefoxTest">
+
+<parameter name="browser" value="firefox"/>
+
+<classes>
+
+<class name="com.example.CrossBrowserDemo"/>
+
+</classes>
+
+</test>
+
+</suite>
+
+---
+
+4.3 Parallel Execution
+
+Parallel execution allows multiple tests to run simultaneously, reducing execution time.
+
+Example: Parallel Methods
+
+<suite name="ParallelSuite" parallel="methods" thread-count="2">
+
+<test name="ParallelTests">
+
+<classes>
+
+<class name="com.example.ParallelDemo"/>
+
+</classes>
+
+</test>
+
+</suite>
+
+import org.testng.annotations.Test;
+
+public class ParallelDemo {
+
+@Test
+
+public void testOne() {
+
+System.out.println("Test One executed by Thread: " + Thread.currentThread().getId());
+
+}
+
+@Test
+
+public void testTwo() {
+
+System.out.println("Test Two executed by Thread: " + Thread.currentThread().getId());
+
+}
+
+}
+
+Output Example
+
+Test One executed by Thread: 11
+
+Test Two executed by Thread: 12
+
+---
+
+4.4 Notes
+
+- Use parallel="methods" or parallel="classes" in suite XML.
+
+- Always set thread-count to control concurrency.
+
+- Cross-browser + parallel execution is often combined with Selenium Grid for distributed testing.
+
+---
+
+4.5 Exercises
+
+1. Cross-Browser Setup: Create a suite XML that runs the same test on Chrome and Firefox.
+
+2. Parallel Execution: Write three test methods and run them in parallel with thread-count=3. Observe thread IDs.
+
+3. Challenge: Combine cross-browser and parallel execution. Run tests on Chrome and Firefox simultaneously with multiple threads.
+
+=====================================================================================================-
+
+📖 Chapter 8: Grouping & Meta Grouping
+
+8.1 Why Grouping?
+
+In real projects, you may have hundreds of test cases.
+
+Grouping allows you to categorize tests (e.g., smoke, regression, sanity) and run only the relevant ones.
+
+Meta grouping lets you combine multiple groups into one logical set.
+
+8.2 Grouping Tests
+
+You can assign groups to test methods using the groups attribute in @Test.
+
+Example
+
+java
+
+import org.testng.annotations.Test;
+
+public class GroupingDemo {
+
+@Test(groups = {"smoke"})
+
+public void testLogin() {
+
+System.out.println("Smoke Test: Login");
+
+}
+
+@Test(groups = {"regression"})
+
+public void testDashboard() {
+
+System.out.println("Regression Test: Dashboard");
+
+}
+
+@Test(groups = {"smoke", "regression"})
+
+public void testProfile() {
+
+System.out.println("Smoke + Regression Test: Profile");
+
+}
+
+}
+
+8.3 Running Groups via XML
+
+You can specify which groups to include/exclude in testng.xml.
+
+Example: Run Only Smoke Tests
+
+xml
+
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+
+<suite name="GroupSuite">
+
+<test name="SmokeTests">
+
+<groups>
+
+<run>
+
+<include name="smoke"/>
+
+</run>
+
+</groups>
+
+<classes>
+
+<class name="com.example.GroupingDemo"/>
+
+</classes>
+
+</test>
+
+</suite>
+
+Example: Exclude Regression Tests
+
+xml
+
+<groups>
+
+<run>
+
+<exclude name="regression"/>
+
+</run>
+
+</groups>
+
+8.4 Meta Grouping
+
+Meta grouping allows you to combine multiple groups into one logical group.
+
+Example
+
+xml
+
+<groups>
+
+<define name="allFunctional">
+
+<include name="smoke"/>
+
+<include name="regression"/>
+
+</define>
+
+<run>
+
+<include name="allFunctional"/>
+
+</run>
+
+</groups>
+
+This way, running allFunctional will execute both smoke and regression tests together.
+
+8.5 Notes
+
+Groups make test execution flexible and selective.
+
+Meta groups are useful when you want to combine multiple categories.
+
+You can include/exclude groups at the suite level without modifying code.
+
+8.6 Exercises
+
+Basic Grouping: Create three test methods and assign them to smoke, regression, and sanity groups. Run only smoke tests via XML.
+
+Exclusion Practice: Write five test methods with different groups. Exclude one group in XML and observe execution.
+
+Challenge: Define a meta group that includes smoke + regression. Run the meta group and verify that both sets of tests execute.
