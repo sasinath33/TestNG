@@ -1,0 +1,445 @@
+Chapter 1: Introduction to TestNG
+
+=============================================
+
+1. Introduction
+
+----------------------
+
+TestNG (Test Next Generation) is a powerful testing framework for Java inspired by JUnit and NUnit,
+
+but designed to support modern automation requirements such as parallel execution, data-driven
+
+testing, flexible configuration, and rich reporting.
+
+When combined with Selenium WebDriver, TestNG becomes the execution engine of a robust
+
+automation framework—controlling test lifecycle, sequencing, data flow, and integration with CI/CD
+
+pipelines.
+
+This guide is a comprehensive, end-to-end reference covering TestNG from basics to advanced
+
+framework-level concepts with practical Selenium examples.
+
+------------------------
+
+1.1 What is TestNG?
+
+TestNG (Test for Next Generation) is a powerful testing framework inspired by JUnit and NUnit but designed to cover a wider range of testing needs:
+
+Unit testing
+
+Integration testing
+
+End-to-end testing
+
+It provides advanced features like annotations, grouping, parallel execution, and reporting, making it ideal for automation frameworks.
+
+1.2 Features of TestNG
+
+Annotations: Simplifies test configuration (@Test, @BeforeMethod, etc.)
+
+Flexible test configuration: Run specific methods, classes, or groups.
+
+Parallel execution: Run tests simultaneously across browsers or threads.
+
+Data-driven testing: Supports parameters and @DataProvider.
+
+Powerful reporting: Generates HTML and XML reports.
+
+Integration: Works seamlessly with tools like Maven, Jenkins, and Selenium.
+
+1.3 Installation
+
+Step 1: Add TestNG to IDE
+
+In Eclipse:
+
+Go to Help → Eclipse Marketplace → Search “TestNG” → Install.
+
+Step 2: Add Maven Dependency
+
+xml
+
+<dependency>
+
+<groupId>org.testng</groupId>
+
+<artifactId>testng</artifactId>
+
+<version>7.9.0</version>
+
+<scope>test</scope>
+
+</dependency>
+
+1.4 First TestNG Program
+
+import org.testng.annotations.Test;
+
+public class FirstTestNGClass {
+
+@Test
+
+Run | debug
+
+public void sampleTest() {
+
+System.out.println("Hello, TestNG!");
+
+}
+
+}
+
+Running the Test
+
+Right-click → Run as TestNG Test in Eclipse
+
+Output:
+
+Hello, TestNG!
+
+PASSED: sampleTest
+
+1.5 Notes
+
+TestNG tests are executed based on annotations, not method names.
+
+No need for main() method.
+
+Reports are automatically generated in the test-output folder.
+
+1.6 Exercises
+
+Basic Test: Write a TestNG class with two test methods that print different messages. Run them and observe the report.
+
+Maven Setup: Create a Maven project, add TestNG dependency, and run a test.
+
+Challenge: Create a test that fails intentionally using Assert.assertEquals(2, 3) and check the report
+
+===========================================================================================
+
+
+
+📖 Chapter 2: Annotations in TestNG
+
+2.1 What are Annotations?
+
+Annotations in TestNG are special markers (keywords starting with @) that tell the framework when and how to run a method.
+
+They eliminate the need for a main() method and give precise control over test execution.
+
+2.2 Commonly Used Annotations
+
+| Annotation | Purpose |
+
+|------------|---------|
+
+| @Test | Marks a method as a test case |
+
+| @BeforeSuite | Runs once before all tests in the suite |
+
+| @AfterSuite | Runs once after all tests in the suite |
+
+| @BeforeTest | Runs before <test> tag in XML |
+
+| @AfterTest | Runs after <test> tag in XML |
+
+| @BeforeClass | Runs before the first method in the class |
+
+| @AfterClass | Runs after the last method in the class |
+
+| @BeforeMethod | Runs before each test method |
+
+| @AfterMethod | Runs after each test method |
+
+---
+
+2.3 Execution Flow Example
+
+import org.testng.annotations.*;
+
+public class AnnotationDemo {
+
+@BeforeSuite
+
+public void beforeSuite() {
+
+System.out.println("Before Suite");
+
+}
+
+@BeforeTest
+
+public void beforeTest() {
+
+System.out.println("Before Test");
+
+}
+
+@BeforeClass
+
+public void beforeClass() {
+
+System.out.println("Before Class");
+
+}
+
+@BeforeMethod
+
+public void beforeMethod() {
+
+System.out.println("Before Method");
+
+}
+
+@Test
+
+public void testOne() {
+
+System.out.println("Test One Executed");
+
+}
+
+@Test
+
+public void testTwo() {
+
+System.out.println("Test Two Executed");
+
+}
+
+@AfterMethod
+
+public void afterMethod() {
+
+System.out.println("After Method");
+
+}
+
+@AfterClass
+
+public void afterClass() {
+
+System.out.println("After Class");
+
+}
+
+@AfterTest
+
+public void afterTest() {
+
+System.out.println("After Test");
+
+}
+
+@AfterSuite
+
+public void afterSuite() {
+
+System.out.println("After Suite");
+
+}
+
+}
+
+Expected Output (Execution Order)
+
+Before Suite
+
+Before Test
+
+Before Class
+
+Before Method
+
+Test One Executed
+
+After Method
+
+Before Method
+
+Test Two Executed
+
+After Method
+
+After Class
+
+After Test
+
+After Suite
+
+---
+
+2.4 Notes
+
+- @BeforeMethod and @AfterMethod run around every test method.
+
+- @BeforeClass and @AfterClass run only once per class.
+
+- Suite-level annotations (@BeforeSuite, @AfterSuite) are useful for setup/teardown tasks like database connections or report initialization.
+
+---
+
+2.5 Exercises
+
+1. Lifecycle Practice: Create a class with three test methods and observe how @BeforeMethod and @AfterMethod wrap each test.
+
+2. Suite Setup: Write a suite XML file with two classes. Use @BeforeSuite to print “Suite Started” and @AfterSuite to print “Suite Finished”.
+
+3. Challenge: Add a @BeforeClass method that initializes a WebDriver, and an @AfterClass method that quits it. Run multiple tests to see how the driver is reused.
+
+======================================================================
+
+📖 Chapter 3: Attributes & Suite Level Execution
+
+3.1 What are Attributes?
+
+Attributes are additional properties you can assign to the @Test annotation to control test behavior.
+
+They help in:
+
+Setting execution order
+
+Enabling/disabling tests
+
+Handling timeouts
+
+Running tests multiple times
+
+3.2 Commonly Used Attributes
+
+Attribute Purpose Example
+
+priority Defines execution order @Test(priority=1)
+
+enabled Enable/disable test @Test(enabled=false)
+
+invocationCount Run test multiple times @Test(invocationCount=3)
+
+timeOut Fail if test exceeds time @Test(timeOut=2000)
+
+dependsOnMethods Run only if another test passes @Test(dependsOnMethods={"loginTest"})
+
+alwaysRun Must be run that testCase
+
+3.3 Example: Using Attributes
+
+import org.testng.annotations.Test;
+
+public class AttributeDemo {
+
+@Test(priority = 1)
+
+public void loginTest() {
+
+System.out.println("Login Test Executed");
+
+}
+
+@Test(priority = 2, dependsOnMethods = {"loginTest"})
+
+public void dashboardTest() {
+
+System.out.println("Dashboard Test Executed");
+
+}
+
+@Test(enabled = false)
+
+public void skippedTest() {
+
+System.out.println("This test will not run");
+
+}
+
+@Test(invocationCount = 3)
+
+public void repeatTest() {
+
+System.out.println("Repeated Test Executed");
+
+}
+
+@Test(timeOut = 1000)
+
+public void timeoutTest() throws InterruptedException {
+
+Thread.sleep(2000); // This will fail
+
+System.out.println("Timeout Test Executed");
+
+}
+
+}
+
+Expected Output
+
+Login Test Executed
+
+Dashboard Test Executed
+
+Repeated Test Executed
+
+Repeated Test Executed
+
+Repeated Test Executed
+
+FAILED: timeoutTest
+
+3.4 Suite Level Execution
+
+A TestNG suite is defined in an XML file. It allows you to:
+
+Run multiple classes together
+
+Control parallel execution
+
+Group tests logically
+
+Sample testng.xml
+
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+
+<suite name="MySuite">
+
+<test name="RegressionTests">
+
+<classes>
+
+<class name="com.example.AttributeDemo"/>
+
+<class name="com.example.LoginTests"/>
+
+</classes>
+
+</test>
+
+</suite>
+
+Running the Suite
+
+Right-click testng.xml → Run as TestNG Suite
+
+All classes listed will execute in the defined order.
+
+3.5 Notes
+
+Attributes give fine-grained control over test execution.
+
+Suite XML is essential for large projects where multiple classes and groups need to run together.
+
+You can combine attributes with suite-level configurations for maximum flexibility.
+
+3.6 Exercises
+
+Priority Practice: Create three test methods with different priorities. Observe the execution order.
+
+Dependency Test: Write a test that depends on another. Make the parent test fail and see how the dependent test behaves.
+
+Suite XML: Create a suite XML file with two classes. Run them together and check the report.
+
+Challenge: Use invocationCount and timeOut together to run a test multiple times but enforce a strict time limit.
+
+===============================================
