@@ -1,0 +1,963 @@
+Listeners
+=============
+📖 Chapter 9: Listeners
+
+9.1 What are Listeners?
+
+Listeners in TestNG are interfaces that let you “listen” to test events.
+
+They can:
+
+Track test start, success, failure, or skip events
+
+Generate custom logs or reports
+
+Retry failed tests automatically
+
+Modify test behavior at runtime
+
+9.2 Commonly Used Listeners
+
+Listener Purpose
+
+ITestListener Captures events like test start, success, failure, skip
+
+IRetryAnalyzer Retries failed tests automatically
+
+IAnnotationTransformer Dynamically modifies annotations at runtime
+
+9.3 Using ITestListener
+
+This listener tracks test execution events.
+
+Example
+
+java
+
+import org.testng.ITestListener;
+
+import org.testng.ITestResult;
+
+public class MyListener implements ITestListener {
+
+@Override
+
+public void onTestStart(ITestResult result) {
+
+System.out.println("Test Started: " + result.getName());
+
+}
+
+@Override
+
+public void onTestSuccess(ITestResult result) {
+
+System.out.println("Test Passed: " + result.getName());
+
+}
+
+@Override
+
+public void onTestFailure(ITestResult result) {
+
+System.out.println("Test Failed: " + result.getName());
+
+}
+
+@Override
+
+public void onTestSkipped(ITestResult result) {
+
+System.out.println("Test Skipped: " + result.getName());
+
+}
+
+}
+
+Applying Listener
+
+xml
+
+<listeners>
+
+<listener class-name="com.example.MyListener"/>
+
+</listeners>
+
+9.4 Using IRetryAnalyzer
+
+This listener retries failed tests automatically.
+
+Example
+
+java
+
+import org.testng.IRetryAnalyzer;
+
+import org.testng.ITestResult;
+
+public class RetryAnalyzer implements IRetryAnalyzer {
+
+int count = 0;
+
+int maxRetry = 2;
+
+@Override
+
+public boolean retry(ITestResult result) {
+
+if(count < maxRetry) {
+
+count++;
+
+return true;
+
+}
+
+return false;
+
+}
+
+}
+
+Applying to a Test
+
+java
+
+import org.testng.annotations.Test;
+
+public class RetryDemo {
+
+@Test(retryAnalyzer = com.example.RetryAnalyzer.class)
+
+public void testRetry() {
+
+System.out.println("Executing test...");
+
+assert false; // Force failure
+
+}
+
+}
+
+9.5 Using IAnnotationTransformer
+
+This listener modifies annotations dynamically at runtime.
+
+Example
+
+java
+
+import org.testng.IAnnotationTransformer;
+
+import org.testng.annotations.ITestAnnotation;
+
+import java.lang.reflect.Constructor;
+
+import java.lang.reflect.Method;
+
+public class AnnotationTransformer implements IAnnotationTransformer {
+
+@Override
+
+public void transform(ITestAnnotation annotation, Class testClass,
+
+Constructor testConstructor, Method testMethod) {
+
+annotation.setRetryAnalyzer(RetryAnalyzer.class);
+
+}
+
+}
+
+Applying Listener
+
+xml
+
+<listeners>
+
+<listener class-name="com.example.AnnotationTransformer"/>
+
+</listeners>
+
+9.6 Notes
+
+ITestListener → Best for logging and reporting.
+
+IRetryAnalyzer → Best for retrying flaky tests.
+
+IAnnotationTransformer → Best for dynamic test behavior.
+
+Listeners are powerful for building robust frameworks with custom reporting and error handling.
+
+9.7 Exercises
+
+Basic Listener: Implement ITestListener to log test start and end events.
+
+Retry Practice: Create a test that fails intentionally and use IRetryAnalyzer to retry it twice.
+
+Challenge: Use IAnnotationTransformer to apply retry logic dynamically to all tests without modifying each test method.
+
+
+
+=====================================================================================================
+
+
+
+What are TestNG Listeners?
+
+Listeners allow you to listen to test execution events and perform actions like:
+
+• Logging
+
+• Reporting
+
+• Screenshots on failure
+
+• Retry logic
+
+• Custom behavior
+
+________________________________________
+
+1. Most Used Listeners Interfaces
+
+Listener Purpose
+
+ITestListener Test start / pass / fail / skip
+
+ISuiteListener Suite start / finish
+
+IInvokedMethodListener Before / after every method
+
+IRetryAnalyzer Retry failed tests
+
+IAnnotationTransformer Modify @Test at runtime
+
+________________________________________
+
+2. ITestListener Example (Most Important)
+
+MyTestListener.java
+
+package listenerDemo;
+
+import org.testng.ITestContext;
+
+import org.testng.ITestListener;
+
+import org.testng.ITestResult;
+
+public class MyTestListener implements ITestListener {
+
+@Override
+
+public void onTestStart(ITestResult result) {
+
+System.out.println("STARTED: " + result.getMethod().getMethodName());
+
+}
+
+@Override
+
+public void onTestSuccess(ITestResult result) {
+
+System.out.println("PASSED: " + result.getMethod().getMethodName());
+
+}
+
+@Override
+
+public void onTestFailure(ITestResult result) {
+
+System.out.println("FAILED: " + result.getMethod().getMethodName());
+
+}
+
+@Override
+
+public void onTestSkipped(ITestResult result) {
+
+System.out.println("SKIPPED: " + result.getMethod().getMethodName());
+
+}
+
+@Override
+
+public void onStart(ITestContext context) {
+
+System.out.println("TEST STARTED: " + context.getName());
+
+}
+
+@Override
+
+public void onFinish(ITestContext context) {
+
+System.out.println("TEST FINISHED: " + context.getName());
+
+}
+
+}
+
+________________________________________
+
+3. Dummy Test Classes
+
+ClassA.java
+
+package listenerDemo;
+
+import org.testng.Assert;
+
+import org.testng.annotations.Test;
+
+public class ClassA {
+
+@Test
+
+public void testPass() {
+
+Assert.assertTrue(true);
+
+}
+
+@Test
+
+public void testFail() {
+
+Assert.assertTrue(false);
+
+}
+
+@Test(dependsOnMethods = "testFail")
+
+public void testSkip() {
+
+System.out.println("This will be skipped");
+
+}
+
+}
+
+________________________________________
+
+4. Attach Listener (2 Ways)
+
+________________________________________
+
+Way 1: Using @Listeners Annotation (Class Level)
+
+@Listeners(listenerDemo.MyTestListener.class)
+
+public class ClassA {
+
+...
+
+}
+
+✔ Applies only to this class
+
+________________________________________
+
+Way 2: Using testng.xml (Recommended)
+
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<suite name="Listener Suite">
+
+<listeners>
+
+<listener class-name="listenerDemo.MyTestListener"/>
+
+</listeners>
+
+<test name="Listener Test">
+
+<classes>
+
+<class name="listenerDemo.ClassA"/>
+
+</classes>
+
+</test>
+
+</suite>
+
+✔ Applies to all tests in suite
+
+________________________________________
+
+Sample Output Explained
+
+TEST STARTED: Listener Test
+
+STARTED: testPass
+
+PASSED: testPass
+
+STARTED: testFail
+
+FAILED: testFail
+
+SKIPPED: testSkip
+
+TEST FINISHED: Listener Test
+
+________________________________________
+
+5. ISuiteListener Example
+
+🔹 SuiteListener.java
+
+package listenerDemo;
+
+import org.testng.ISuite;
+
+import org.testng.ISuiteListener;
+
+public class SuiteListener implements ISuiteListener {
+
+@Override
+
+public void onStart(ISuite suite) {
+
+System.out.println("SUITE STARTED: " + suite.getName());
+
+}
+
+@Override
+
+public void onFinish(ISuite suite) {
+
+System.out.println("SUITE FINISHED: " + suite.getName());
+
+}
+
+}
+
+________________________________________
+
+6. IInvokedMethodListener (Before/After Every Method)
+
+package listenerDemo;
+
+import org.testng.IInvokedMethod;
+
+import org.testng.IInvokedMethodListener;
+
+import org.testng.ITestResult;
+
+public class MethodListener implements IInvokedMethodListener {
+
+@Override
+
+public void beforeInvocation(IInvokedMethod method, ITestResult testResult) {
+
+System.out.println("BEFORE METHOD: " + method.getTestMethod().getMethodName());
+
+}
+
+@Override
+
+public void afterInvocation(IInvokedMethod method, ITestResult testResult) {
+
+System.out.println("AFTER METHOD: " + method.getTestMethod().getMethodName());
+
+}
+
+}
+
+________________________________________
+
+7. Retry Failed Tests Example
+
+RetryAnalyzer.java
+
+package listenerDemo;
+
+import org.testng.IRetryAnalyzer;
+
+import org.testng.ITestResult;
+
+public class RetryAnalyzer implements IRetryAnalyzer {
+
+int retryCount = 0;
+
+int maxRetry = 2;
+
+@Override
+
+public boolean retry(ITestResult result) {
+
+if (retryCount < maxRetry) {
+
+retryCount++;
+
+return true;
+
+}
+
+return false;
+
+}
+
+}
+
+@Test(retryAnalyzer = listenerDemo.RetryAnalyzer.class)
+
+public void flakyTest() {
+
+Assert.assertTrue(false);
+
+}
+
+________________________________________
+
+Listener When it Triggers
+
+ITestListener Test pass/fail/skip
+
+ISuiteListener Suite start/finish
+
+IInvokedMethodListener Before/after every method
+
+IRetryAnalyzer Retry failures
+
+IAnnotationTransformer Modify annotations dynamically
+
+________________________________________
+
+TestNG Listeners – How to Run Each Listener
+
+This document explains how to run each TestNG listener with simple steps.
+
+1. ITestListener
+
+- Used to listen to test pass, fail, skip.
+
+- Attach using @Listeners annotation or testng.xml.
+
+- Run test class as TestNG test.
+
+2. ISuiteListener
+
+- Listens to suite start and finish.
+
+- Must be added in testng.xml.
+
+- Run testng.xml as TestNG Suite.
+
+3. IInvokedMethodListener
+
+- Runs before and after every method.
+
+- Added in testng.xml.
+
+- Run testng.xml.
+
+4. IExecutionListener
+
+- Runs before and after complete TestNG execution.
+
+- Added in testng.xml.
+
+- Run testng.xml.
+
+5. IReporter
+
+- Used for custom report generation.
+
+- Added in testng.xml.
+
+- Runs after all tests finish.
+
+6. IMethodInterceptor
+
+- Used to control test execution order.
+
+- Added in testng.xml.
+
+- Run testng.xml.
+
+7. IAnnotationTransformer
+
+- Modifies TestNG annotations at runtime.
+
+- Must be added in testng.xml.
+
+- Run testng.xml.
+
+Important Rule:
+
+- Class level → @Listeners
+
+- Suite level → testng.xml
+
+COMMON TEST CLASS
+
+Use this test class for all listener examples 👇
+
+import org.testng.Assert;
+
+import org.testng.annotations.Test;
+
+public class SampleTest {
+
+@Test
+
+public void passTest() {
+
+System.out.println("This test will pass");
+
+Assert.assertTrue(true);
+
+}
+
+@Test
+
+public void failTest() {
+
+System.out.println("This test will fail");
+
+Assert.assertTrue(false);
+
+}
+
+}
+
+________________________________________
+
+1) How to run ITestListener
+
+Step 1: Listener Code
+
+import org.testng.ITestListener;
+
+import org.testng.ITestResult;
+
+public class MyTestListener implements ITestListener {
+
+public void onTestStart(ITestResult result) {
+
+System.out.println("Test Started: " + result.getName());
+
+}
+
+public void onTestSuccess(ITestResult result) {
+
+System.out.println("Test Passed: " + result.getName());
+
+}
+
+public void onTestFailure(ITestResult result) {
+
+System.out.println("Test Failed: " + result.getName());
+
+}
+
+}
+
+________________________________________
+
+Step 2: Attach Listener (Class Level)
+
+import org.testng.annotations.Listeners;
+
+@Listeners(MyTestListener.class)
+
+public class SampleTest {
+
+}
+
+▶ How to Run
+
+✔ Right click → Run as TestNG Test
+
+✔ OR run via testng.xml
+
+________________________________________
+
+2) How to run ISuiteListener
+
+Step 1: Listener Code
+
+import org.testng.ISuite;
+
+import org.testng.ISuiteListener;
+
+public class MySuiteListener implements ISuiteListener {
+
+public void onStart(ISuite suite) {
+
+System.out.println("Suite Started");
+
+}
+
+public void onFinish(ISuite suite) {
+
+System.out.println("Suite Finished");
+
+}
+
+}
+
+________________________________________
+
+Step 2: Attach in testng.xml
+
+<suite name="MySuite">
+
+<listeners>
+
+<listener class-name="MySuiteListener"/>
+
+</listeners>
+
+<test name="Tests">
+
+<classes>
+
+<class name="SampleTest"/>
+
+</classes>
+
+</test>
+
+</suite>
+
+▶ How to Run
+
+✔ Right click testng.xml → Run as TestNG Suite
+
+________________________________________
+
+3) How to run IInvokedMethodListener
+
+Step 1: Listener Code
+
+import org.testng.IInvokedMethod;
+
+import org.testng.IInvokedMethodListener;
+
+import org.testng.ITestResult;
+
+public class MyInvokedListener implements IInvokedMethodListener {
+
+public void beforeInvocation(IInvokedMethod method, ITestResult result) {
+
+System.out.println("Before Method: " + method.getTestMethod().getMethodName());
+
+}
+
+public void afterInvocation(IInvokedMethod method, ITestResult result) {
+
+System.out.println("After Method: " + method.getTestMethod().getMethodName());
+
+}
+
+}
+
+________________________________________
+
+Step 2: Attach in testng.xml
+
+<listeners>
+
+<listener class-name="MyInvokedListener"/>
+
+</listeners>
+
+▶ How to Run
+
+✔ Run testng.xml
+
+________________________________________
+
+4) How to run IExecutionListener
+
+Step 1: Listener Code
+
+import org.testng.IExecutionListener;
+
+public class MyExecutionListener implements IExecutionListener {
+
+public void onExecutionStart() {
+
+System.out.println("Execution Started");
+
+}
+
+public void onExecutionFinish() {
+
+System.out.println("Execution Finished");
+
+}
+
+}
+
+________________________________________
+
+Step 2: Attach in testng.xml
+
+<listeners>
+
+<listener class-name="MyExecutionListener"/>
+
+</listeners>
+
+▶ How to Run
+
+✔ Run testng.xml
+
+This listener runs before anything else
+
+________________________________________
+
+5.How to run IReporter
+
+Step 1: Listener Code
+
+import org.testng.IReporter;
+
+import org.testng.ISuite;
+
+import org.testng.xml.XmlSuite;
+
+import java.util.List;
+
+public class MyReporter implements IReporter {
+
+public void generateReport(List<XmlSuite> xmlSuites,
+
+List<ISuite> suites,
+
+String outputDirectory) {
+
+System.out.println("Custom Report Generated");
+
+}
+
+}
+
+________________________________________
+
+Step 2: Attach in testng.xml
+
+<listeners>
+
+<listener class-name="MyReporter"/>
+
+</listeners>
+
+▶ How to Run
+
+✔ Run testng.xml
+
+Runs after all tests finish
+
+________________________________________
+
+6.How to run IMethodInterceptor
+
+Step 1: Listener Code
+
+import org.testng.IMethodInterceptor;
+
+import org.testng.IMethodInstance;
+
+import org.testng.ITestContext;
+
+import java.util.List;
+
+public class MyMethodInterceptor implements IMethodInterceptor {
+
+public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
+
+System.out.println("Intercepting methods");
+
+return methods;
+
+}
+
+}
+
+________________________________________
+
+Step 2: Attach in testng.xml
+
+<listeners>
+
+<listener class-name="MyMethodInterceptor"/>
+
+</listeners>
+
+▶ How to Run
+
+✔ Run testng.xml
+
+________________________________________
+
+7. How to run IAnnotationTransformer
+
+⚠ IMPORTANT
+
+This listener ONLY works via testng.xml (NOT class level)
+
+Step 1: Listener Code
+
+import org.testng.IAnnotationTransformer;
+
+import org.testng.annotations.ITestAnnotation;
+
+import java.lang.reflect.Method;
+
+public class MyAnnotationTransformer implements IAnnotationTransformer {
+
+public void transform(ITestAnnotation annotation,
+
+Class testClass,
+
+java.lang.reflect.Constructor testConstructor,
+
+Method testMethod) {
+
+annotation.setEnabled(true);
+
+}
+
+}
+
+________________________________________
+
+Step 2: Attach in testng.xml
+
+<listeners>
+
+<listener class-name="MyAnnotationTransformer"/>
+
+</listeners>
+
+▶ How to Run
+
+✔ Run testng.xml
+
+________________________________________
+
+🔥 VERY IMPORTANT TABLE (REMEMBER THIS)
+
+Listener How to Run
+
+ITestListener Class level / XML
+
+ISuiteListener XML only
+
+IInvokedMethodListener XML
+
+IExecutionListener XML
+
+IReporter XML
+
+IMethodInterceptor XML
+
+IAnnotationTransformer XML only
