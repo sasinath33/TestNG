@@ -1,0 +1,438 @@
+📖 Chapter 11: Reports in TestNG
+
+11.1 Why Reports?
+
+Reports are essential because they:
+
+Provide a summary of test execution (passed, failed, skipped).
+
+Help identify issues quickly.
+
+Allow stakeholders to track progress and quality.
+
+11.2 Default TestNG Reports
+
+When you run a suite, TestNG automatically generates reports in the test-output folder:
+
+index.html → Summary of all tests.
+
+emailable-report.html → A simple report that can be shared via email.
+
+testng-results.xml → XML format for integration with CI/CD tools.
+
+Example Output (index.html)
+
+Total tests run: 10
+
+Passed: 8
+
+Failed: 2
+
+Skipped: 0
+
+11.3 Customizing Reports with Listeners
+
+You can use ITestListener to log custom messages into reports.
+
+For example, capturing screenshots on failure and attaching them to reports.
+
+java
+
+@Override
+
+public void onTestFailure(ITestResult result) {
+
+System.out.println("Test Failed: " result.getName());
+
+// Code to capture screenshot can be added here
+
+
+}
+
+11.4 Extent Reports
+
+Extent Reports is a popular library for creating beautiful, interactive HTML reports.
+
+Maven Dependency
+
+xml
+
+<dependency>
+
+<groupId>com.aventstack</groupId>
+
+<artifactId>extentreports</artifactId>
+
+<version>5.0.9</version>
+
+</dependency>
+
+Example: Extent Report Integration
+
+java
+
+import com.aventstack.extentreports.ExtentReports;
+
+import com.aventstack.extentreports.ExtentTest;
+
+import com.aventstack.extentreports.reporter.ExtentHtmlReporter;
+
+import org.testng.annotations.*;
+
+public class ExtentReportDemo {
+
+ExtentReports extent;
+
+ExtentTest test;
+
+@BeforeSuite
+
+public void setupReport() {
+
+ExtentHtmlReporter reporter = new ExtentHtmlReporter("extentReport.html");
+
+extent = new ExtentReports();
+
+extent.attachReporter(reporter);
+
+}
+
+@Test
+
+public void sampleTest() {
+
+test = extent.createTest("Sample Test");
+
+test.pass("Test Passed Successfully!");
+
+}
+
+@AfterSuite
+
+public void tearDownReport() {
+
+extent.flush();
+
+}
+
+}
+
+Output
+
+A colorful HTML report with:
+
+Test status (pass/fail/skip)
+
+Logs and screenshots
+
+Interactive charts
+
+11.5 Notes
+
+Default TestNG reports are simple but sufficient for small projects.
+
+Extent Reports are recommended for professional frameworks.
+
+Reports can be integrated with Jenkins for CI/CD pipelines.
+
+11.6 Exercises
+
+Default Report Practice: Run a suite and open index.html in the test-output folder.
+
+Extent Report Practice: Integrate Extent Reports into a sample project and generate a custom report.
+
+Challenge: Capture screenshots on test failure and attach them to Extent Reports.
+
+=================================================
+
+package demo_4_30_batch;
+
+import java.time.Duration;
+
+import org.openqa.selenium.By;
+
+import org.openqa.selenium.WebDriver;
+
+import org.openqa.selenium.chrome.ChromeDriver;
+
+import org.testng.annotations.AfterClass;
+
+import org.testng.annotations.AfterMethod;
+
+import org.testng.annotations.BeforeClass;
+
+import org.testng.annotations.BeforeMethod;
+
+import org.testng.annotations.DataProvider;
+
+import org.testng.annotations.Test;
+
+import com.aventstack.extentreports.ExtentReports;
+
+import com.aventstack.extentreports.ExtentTest;
+
+import com.aventstack.extentreports.reporter.ExtentSparkReporter;
+
+public class ExtentReportGenerator {
+
+ExtentReports extent;
+
+WebDriver driver;
+
+
+@BeforeClass
+
+public void start() {
+
+ExtentSparkReporter dir=new ExtentSparkReporter("C:\\Users\\LAPTOP\\OneDrive\\Desktop\\OraniumTech\\Selenium_Batch\\src\\test\\resources\\Reports\\Second.html");
+
+dir.config().setDocumentTitle("First Extent report");
+
+dir.config().setReporter(dir);
+
+dir.config().setReportName("Oranium");
+
+
+extent=new ExtentReports();
+
+extent.attachReporter(dir);
+
+
+extent.setSystemInfo("Tester", "Karthik");
+
+extent.setSystemInfo("Role", "QA");
+
+
+}
+
+
+
+@BeforeMethod
+
+public void openWebSite() {
+
+driver=new ChromeDriver();
+
+driver.manage().window().maximize();
+
+driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
+
+driver.get("https://www.google.com");
+
+
+}
+
+
+@Test(dataProvider="getData")
+
+public void wordSearch(String word) {
+
+driver.findElement(By.name("q")).sendKeys(word);
+
+
+ExtentTest test=extent.createTest("User search word ").assignCategory("sanity").assignAuthor("rithika");
+
+if(word.equals("java")) {
+
+test.pass("Good");
+
+}
+
+else {
+
+test.fail("fail testcase");
+
+
+test.addScreenCaptureFromPath("C:\\Users\\LAPTOP\\OneDrive\\Desktop\\OraniumTech\\Selenium_Batch\\src\\test\\resources\\Reports\\failure.png");
+
+}
+
+
+}
+
+
+
+
+@DataProvider
+
+public String[] getData() {
+
+return new String[] {"java","selenium"};
+
+}
+
+
+
+
+@AfterMethod
+
+public void quit() {
+
+driver.quit();
+
+}
+
+
+@AfterClass
+
+public void close() {
+
+extent.flush();
+
+}
+
+
+}
+
+
+
+
+Reports.java
+Fullscreen
+package demo_3;
+
+import java.io.File;
+
+import org.openqa.selenium.By;
+
+import org.openqa.selenium.WebDriver;
+
+import org.openqa.selenium.WebElement;
+
+import org.openqa.selenium.chrome.ChromeDriver;
+
+import org.testng.annotations.AfterClass;
+
+import org.testng.annotations.AfterMethod;
+
+import org.testng.annotations.BeforeClass;
+
+import org.testng.annotations.BeforeMethod;
+
+import org.testng.annotations.Test;
+
+import com.aventstack.extentreports.ExtentReports;
+
+import com.aventstack.extentreports.ExtentTest;
+
+import com.aventstack.extentreports.reporter.ExtentSparkReporter;
+
+public class Reports {
+
+WebDriver driver;
+
+ExtentReports report;
+
+@BeforeClass
+
+public void reportGen() {
+
+String path = "C:\\Users\\LAPTOP\\OneDrive\\Desktop\\Java\\Java_Selenium_TestNG_2PM\\target\\htmlReport\\first.html";
+
+File f = new File(path);
+
+ExtentSparkReporter esr = new ExtentSparkReporter(f);
+
+esr.config().setDocumentTitle("Google Search");
+
+esr.config().setReportName("Techpanda");
+
+report = new ExtentReports();
+
+report.attachReporter(esr);
+
+report.setSystemInfo("Tester", "Raji");
+
+report.setSystemInfo("Os", "windows");
+
+report.setSystemInfo("Browser", "Chrome");
+
+}
+
+@BeforeMethod
+
+public void driverInit() {
+
+driver = new ChromeDriver();
+
+driver.get("https://www.google.com");
+
+}
+
+@Test
+
+public void searchWord() {
+
+WebElement element = driver.findElement(By.name("q"));
+
+element.sendKeys("Java");
+
+if (element.isDisplayed()) {
+
+ExtentTest test = report.createTest("Checking element", "element is present").assignCategory("sanity")
+
+.assignAuthor("TP");
+
+test.pass("Success");
+
+} else {
+
+ExtentTest test = report.createTest("Checking element", "element is absent").assignCategory("sanity")
+
+.assignAuthor("TP");
+
+test.fail("Failure");
+
+String path = "C:\\Users\\LAPTOP\\OneDrive\\Desktop\\Java\\Java_Selenium_TestNG_2PM\\target\\htmlReport\\first.png";
+
+test.addScreenCaptureFromPath(path);
+
+}
+
+}
+
+@Test
+
+public void searchWord2() {
+
+try {
+
+WebElement element = driver.findElement(By.name("q2"));
+
+element.sendKeys("Java");
+
+} catch (Exception e) {
+
+ExtentTest test = report.createTest("Checking element", "element is absent").assignCategory("sanity")
+
+.assignAuthor("TP");
+
+test.fail("Failure");
+
+String path = "C:\\Users\\LAPTOP\\OneDrive\\Desktop\\Java\\Java_Selenium_TestNG_2PM\\target\\htmlReport\\first.png";
+
+test.addScreenCaptureFromPath(path);
+
+}
+
+}
+
+@AfterMethod
+
+public void driverClose() {
+
+driver.quit();
+
+}
+
+@AfterClass
+
+public void report() {
+
+report.flush();
+
+}
+
+}
+
